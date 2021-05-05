@@ -88,6 +88,9 @@ def background_colour_change(colour, image_list):
         trans_mask = np.array(cv2.dilate(trans_mask, kernel2, iterations=1), dtype=bool)
         image[trans_mask] = (255, 255, 255)
         print(f"trans_mask pierwszego zdjęcia --> {trans_mask}")
+
+        #test
+        #test
     return image_list
 
 def go_through(directory):
