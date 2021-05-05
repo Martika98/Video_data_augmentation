@@ -79,7 +79,8 @@ def background_colour_change(colour, image_list):
     for image in image_list:
         #trans_mask = np.zeros(image.shape[0], image.shape[1])
         hsv_image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
-        trans_mask = cv2.inRange(hsv_image, (5, 105, 10), (14, 170, 250)) #((5, 105, 10), (14, 170, 250))tło przy pani z krótkimi włosami i grzywką na bok i grubszej pani o jadnej karnacji
+        trans_mask = cv2.inRange(hsv_image, (5, 105, 10), (14, 170, 250))
+        #((5, 105, 10), (14, 170, 250))tło przy pani z krótkimi włosami i grzywką na bok i grubszej pani o jadnej karnacji
         kernel = np.ones((7, 7), np.uint8)
         trans_mask = cv2.morphologyEx(trans_mask, cv2.MORPH_OPEN, kernel)
         #trans_mask = np.array(trans_mask, dtype = bool)
