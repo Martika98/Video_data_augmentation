@@ -81,20 +81,53 @@ def slight_colour_change(change, image_list):
 def give_random_background(path = r'C:\Users\Martina\Desktop\baza_danych_inz\back_ground'):
     dir_list = os.listdir(path)
     rand = random.randint(0, len(dir_list) - 1)
-    iterator = 0
-    for filename in dir_list:
-        if filename.endswith(".jpg") or filename.endswith(".png"):
-            if rand == iterator:
-                back_img = cv2.imread(os.path.join(path, filename))
-                back_img = cv2.cvtColor(back_img, cv2.COLOR_BGR2BGRA)
-                return back_img
-            iterator = iterator +1
-        else:
-            continue
+    if dir_list[rand].endswith(".jpg") or dir_list[rand].endswith(".png"):
+        back_img = cv2.imread(os.path.join(path, dir_list[rand]))
+        back_img = cv2.cvtColor(back_img, cv2.COLOR_BGR2BGRA)
+        return back_img
+    else:
+        pass
     return None
 
+def clothes_colour_change(image_list, colour = (255,255,255,255), image_mode = False):
+    back_image = None
+    if image_mode:
+        while back_image is None:
+            back_image = give_random_background()
+    for i in range(image_list.shape[0]):
+        gray_image = cv2.cvtColor(image_list[i], cv2.COLOR_BGR2GRAY)
+        alpha_image = cv2.cvtColor(image_list[i], cv2.COLOR_BGR2BGRA)
+        trans_mask = cv2.inRange(gray_image, 0, 48)
+        #((5, 105, 10), (14, 170, 250))tło przy pani z krótkimi włosami i grzywką na bok i grubszej pani o jadnej karnacji
+        kernel = np.ones((5,5), np.uint8)
+        trans_mask = cv2.morphologyEx(trans_mask, cv2.MORPH_OPEN, kernel)
 
-def background_colour_change(colour, image_list, image_mode = False):
+        #kernel2 = np.ones((1, 1), np.uint8)
+        #trans_mask = np.array(cv2.erode(trans_mask, kernel2, iterations=1), dtype=bool)
+
+        trans_mask = np.array(trans_mask, dtype=bool)
+        if image_mode:
+            image2 = cv2.resize(back_image, (alpha_image.shape[1],alpha_image.shape[0]))
+            trans_mask = np.logical_not(trans_mask)
+            image2[trans_mask] = (0, 0, 0, 0)
+        else:
+            image2 = np.zeros((alpha_image.shape), np.uint8)
+            image2[trans_mask] = colour
+
+        cv2.imwrite('dupa.jpg', image2)
+        image2 = cv2.GaussianBlur(image2, (5, 5), 0)
+        image2 = cv2.blur(image2, (3,3))
+        print(image2.shape)
+
+        image_list[i] = cv2.cvtColor(cv2.addWeighted(alpha_image, 1, image2, 0.8, 0.0), cv2.COLOR_BGRA2BGR)
+
+        print(f"trans_mask pierwszego zdjęcia --> {trans_mask}")
+
+    return image_list
+
+
+
+def background_colour_change(image_list, colour=(255,255,0,255), image_mode = False):
     for i in range(image_list.shape[0]):
         hsv_image = cv2.cvtColor(image_list[i], cv2.COLOR_BGR2HSV)
         alpha_image = cv2.cvtColor(image_list[i], cv2.COLOR_BGR2BGRA)
@@ -114,7 +147,7 @@ def background_colour_change(colour, image_list, image_mode = False):
             image2[trans_mask] = (0, 0, 0, 0)
         else:
             image2 = np.zeros((alpha_image.shape), np.uint8)
-            image2[trans_mask] = (255,0,255,255)
+            image2[trans_mask] = colour
 
         cv2.imwrite('dupa.jpg', image2)
         image2 = cv2.GaussianBlur(image2, (5, 5), 0)
@@ -139,9 +172,10 @@ def go_through(directory):
             data = video2frames(os.path.join(directory, filename))
             if data is None:
                 continue
-            data_aug = background_colour_change(30, data) #zmiana koloru tła
+            #data_aug = background_colour_change(data, (255,255,0,255)) #zmiana koloru tła
+            data_aug = clothes_colour_change(data, image_mode=True)
             #data_aug = slight_colour_change(70, data) #zmiana przestrzeni barw?
-            frames2video(data_aug, filename, 'purple_background')
+            frames2video(data_aug, filename, 'pattern_clothes_002')
             #video_aug.save("out.avi", save_all=True, append_images=video_aug[1:], duration=100, loop=0)
         else:
             continue
